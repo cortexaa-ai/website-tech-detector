@@ -99,6 +99,37 @@
     "html": ["cdn\\d*\\.bigcommerce\\.com"]
   },
 
+  "Framer Sites": {
+    "cat": "Page builder",
+    "meta": { "generator": "^Framer(?: (\\d+\\.[\\d.]+)(?!\\w))?" },
+    "html": ["framerusercontent\\.com", "data-framer-(?:hydrate|name|component-type)", "events\\.framer\\.com"],
+    "implies": ["React", "Framer Motion"]
+  },
+  "Framer Motion": {
+    "cat": "JavaScript library",
+    "html": ["data-framer-appear-id"],
+    "js": ["framer-motion", "__framer_importFromPackage"]
+  },
+  "Goober": {
+    "cat": "CSS-in-JS",
+    "html": ["id=[\"']_goober[\"']"]
+  },
+  "styled-components": {
+    "cat": "CSS-in-JS",
+    "html": ["data-styled(?:-version=\"([\\d.]+)\")?", "<style[^>]+data-styled"]
+  },
+  "Emotion": {
+    "cat": "CSS-in-JS",
+    "html": ["data-emotion=\"css", "<style[^>]+data-emotion"]
+  },
+  "Priority Hints": {
+    "cat": "Performance",
+    "html": ["\\bfetchpriority=[\"']?(?:high|low)"]
+  },
+  "Lazy loading": {
+    "cat": "Performance",
+    "html": ["\\bloading=[\"']lazy[\"']"]
+  },
   "Laravel": {
     "cat": "Web framework",
     "cookies": { "laravel_session": "" },
@@ -112,6 +143,7 @@
   },
   "Inertia.js": {
     "cat": "Web framework",
+    "group": "Frontend",
     "html": ["data-page=\"\\{&quot;component&quot;", "data-page=\"\\{\"component\""]
   },
   "Symfony": {
@@ -166,12 +198,14 @@
   },
   "Next.js": {
     "cat": "Web framework",
+    "group": "Frontend",
     "headers": { "x-powered-by": "^Next\\.js ?([\\d.]+)?", "x-nextjs-cache": "", "x-nextjs-matched-path": "" },
     "html": ["/_next/static/", "__NEXT_DATA__", "self\\.__next_f"],
     "implies": ["React", "Node.js"]
   },
   "Nuxt.js": {
     "cat": "Web framework",
+    "group": "Frontend",
     "html": ["window\\.__NUXT__", "/_nuxt/", "id=\"__nuxt\"", "data-nuxt-"],
     "implies": ["Vue.js", "Node.js"]
   },
@@ -183,16 +217,19 @@
   },
   "Remix": {
     "cat": "Web framework",
+    "group": "Frontend",
     "html": ["__remixContext", "__remixManifest"],
     "implies": ["React"]
   },
   "SvelteKit": {
     "cat": "Web framework",
+    "group": "Frontend",
     "html": ["__sveltekit_", "data-sveltekit-"],
     "implies": ["Svelte"]
   },
   "Astro": {
     "cat": "Web framework",
+    "group": "Frontend",
     "meta": { "generator": "^Astro v?([\\d.]+)?" },
     "html": ["<astro-island", "astro-cid-"]
   },
@@ -328,7 +365,7 @@
   "Google Fonts": {
     "cat": "Fonts",
     "css": ["fonts\\.googleapis\\.com"],
-    "html": ["fonts\\.googleapis\\.com/css"]
+    "html": ["fonts\\.googleapis\\.com/css", "fonts\\.gstatic\\.com/s/"]
   },
 
   "PHP": {
@@ -495,27 +532,33 @@
 
   "Google Analytics": {
     "cat": "Analytics",
-    "html": ["google-analytics\\.com/(?:ga|analytics)\\.js", "googletagmanager\\.com/gtag/js\\?id=G-", "\\bgtag\\(\\s*['\"]config['\"]\\s*,\\s*['\"](?:G|UA)-"]
+    "html": [
+      "googletagmanager\\.com/gtag/js\\?id=G-\\;version:GA4",
+      "\\bgtag\\(\\s*['\"]config['\"]\\s*,\\s*['\"]G-\\;version:GA4",
+      "\\\\?\"vtp_measurementId\\\\?\"\\s*:\\s*\\\\?\"G-\\;version:GA4",
+      "\"function\":\"__(?:googtag|gaawc|gaawe)\"\\;version:GA4",
+      "google-analytics\\.com/(?:ga|analytics)\\.js\\;version:UA"
+    ]
   },
   "Google Tag Manager": {
     "cat": "Tag manager",
     "html": ["googletagmanager\\.com/gtm\\.js", "googletagmanager\\.com/ns\\.html\\?id=GTM-"]
   },
-  "Meta Pixel": {
+  "Microsoft Clarity": {
     "cat": "Analytics",
-    "html": ["connect\\.facebook\\.net/[^\"']+/fbevents\\.js", "\\bfbq\\(\\s*['\"]init"]
+    "html": ["scripts\\.clarity\\.ms/([\\d.]+)/clarity\\.js", "clarity\\.ms/tag"]
+  },
+  "LinkedIn Insight Tag": {
+    "cat": "Analytics",
+    "html": ["snap\\.licdn\\.com/li\\.lms-analytics", "_linkedin_partner_id", "px\\.ads\\.linkedin\\.com"]
   },
   "Hotjar": {
     "cat": "Analytics",
     "html": ["static\\.hotjar\\.com", "\\bhjid\\s*:"]
   },
-  "Microsoft Clarity": {
-    "cat": "Analytics",
-    "html": ["clarity\\.ms/tag"]
-  },
   "Plausible": {
     "cat": "Analytics",
-    "scripts": ["plausible\\.io/js"]
+    "html": ["plausible\\.io/js"]
   },
   "Matomo": {
     "cat": "Analytics",
@@ -529,12 +572,74 @@
     "cat": "Analytics",
     "html": ["cdn\\.segment\\.com/analytics"]
   },
+  "Heap": {
+    "cat": "Analytics",
+    "html": ["cdn\\.heapanalytics\\.com", "heap\\.load\\("]
+  },
+  "Amplitude": {
+    "cat": "Analytics",
+    "html": ["cdn\\.amplitude\\.com", "amplitude\\.getInstance\\("]
+  },
+  "Yandex Metrica": {
+    "cat": "Analytics",
+    "html": ["mc\\.yandex\\.ru/metrika"]
+  },
+
+  "Meta Pixel": {
+    "cat": "Advertising",
+    "html": ["connect\\.facebook\\.net/[^\"']+/fbevents\\.js", "\\bfbq\\(\\s*['\"]init"]
+  },
+  "Google Ads": {
+    "cat": "Advertising",
+    "html": ["googletagmanager\\.com/gtag/js\\?id=AW-", "\\bgtag\\(\\s*['\"]config['\"]\\s*,\\s*['\"]AW-", "googleadservices\\.com/pagead/conversion", "googleads\\.g\\.doubleclick\\.net", "\"function\":\"__(?:awct|sp)\""]
+  },
+  "DoubleClick Floodlight": {
+    "cat": "Advertising",
+    "html": ["fls\\.doubleclick\\.net", "googletagmanager\\.com/gtag/js\\?id=DC-", "\\bgtag\\(\\s*['\"]config['\"]\\s*,\\s*['\"]DC-", "\"function\":\"__fl[cs]\""]
+  },
+  "Twitter Ads": {
+    "cat": "Advertising",
+    "html": ["static\\.ads-twitter\\.com/uwt\\.js", "analytics\\.twitter\\.com", "\\btwq\\(\\s*['\"](?:init|config)"]
+  },
+  "TikTok Pixel": {
+    "cat": "Advertising",
+    "html": ["analytics\\.tiktok\\.com/i18n/pixel", "\\bttq\\.load\\("]
+  },
+  "Snapchat Pixel": {
+    "cat": "Advertising",
+    "html": ["sc-static\\.net/scevent\\.min\\.js", "\\bsnaptr\\(\\s*['\"]init"]
+  },
+  "Pinterest Tag": {
+    "cat": "Advertising",
+    "html": ["s\\.pinimg\\.com/ct/core\\.js", "\\bpintrk\\(\\s*['\"]load"]
+  },
+  "Microsoft Advertising": {
+    "cat": "Advertising",
+    "html": ["bat\\.bing\\.com/bat\\.js"]
+  },
+  "Reddit Pixel": {
+    "cat": "Advertising",
+    "html": ["redditstatic\\.com/ads/pixel\\.js", "\\brdt\\(\\s*['\"]init"]
+  },
+
   "HubSpot": {
-    "cat": "Marketing",
-    "html": ["js\\.hs-scripts\\.com", "js\\.hsforms\\.net", "js\\.hs-analytics\\.net"]
+    "cat": "Marketing automation",
+    "html": ["js(?:-[a-z]{2}\\d)?\\.hs-scripts\\.com", "js\\.hsforms\\.net", "js\\.hs-analytics\\.net"]
+  },
+  "HubSpot Chat": {
+    "cat": "Live chat",
+    "html": ["js(?:-[a-z]{2}\\d)?\\.usemessages\\.com", "hubspot-messages-iframe"]
+  },
+  "Marketo": {
+    "cat": "Marketing automation",
+    "html": ["munchkin\\.marketo\\.net", "Munchkin\\.init"]
+  },
+  "Klaviyo": {
+    "cat": "Email marketing",
+    "html": ["static\\.klaviyo\\.com"]
   },
   "Mailchimp": {
-    "cat": "Marketing",
+    "cat": "Email marketing",
     "html": ["chimpstatic\\.com", "list-manage\\.com"]
   },
 

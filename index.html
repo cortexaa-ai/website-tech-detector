@@ -44,6 +44,17 @@
   .notes { margin: 10px 0 0; padding-left: 18px; color: var(--medium); font-size: 13px; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
   .cat { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  dl { margin: 0; }
+  .kv { display: grid; grid-template-columns: 110px 1fr; gap: 8px; padding: 5px 0; border-top: 1px solid var(--border); font-size: 13.5px; }
+  .kv:first-child { border-top: 0; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; overflow-wrap: anywhere; }
+  .pill { display: inline-block; margin: 0 4px 4px 0; padding: 1px 8px; border-radius: 99px; background: var(--chip); font-size: 12.5px; }
+  .muted { color: var(--muted); font-size: 13.5px; margin: 0; }
+  .group { margin-top: 28px; }
+  .group-title { font-size: 18px; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+  .group-title span { font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 99px;
+                      background: var(--chip); color: var(--muted); }
   .cat h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; }
   details { border-top: 1px solid var(--border); padding: 8px 0; }
   details:first-of-type { border-top: 0; }
@@ -97,6 +108,59 @@
     }
   });
 
+  // One key/value row; skipped when the value is empty.
+  const row = (k, v) => (v === null || v === undefined || v === "" || (Array.isArray(v) && !v.length)) ? ""
+    : `<div class="kv"><dt>${esc(k)}</dt><dd>${Array.isArray(v) ? v.map((x) => `<span class="pill">${esc(x)}</span>`).join("") : esc(v)}</dd></div>`;
+  const card = (title, body, error) => `
+    <section class="cat">
+      <h2>${esc(title)}</h2>
+      ${error ? `<p class="muted">${esc(error)}</p>` : `<dl>${body}</dl>`}
+    </section>`;
+
+  function renderInfo({ domain = {}, hosting = {}, tls = {}, email = {} }) {
+    const owner = domain.owner
+      ? domain.owner + (domain.owner_country ? ` (${domain.owner_country})` : "")
+      : (domain.owner_hidden ? "Hidden (privacy protection)" : null);
+    const sslLeft = tls.days_left !== undefined ? `${tls.valid_to} (${tls.days_left} days left)` : tls.valid_to;
+    return `
+      <section class="group">
+        <h2 class="group-title">Site info</h2>
+        <div class="grid">
+          ${card("Domain", [
+            row("Domain", domain.domain),
+            row("Registered", domain.registered && `${domain.registered}${domain.age ? ` · ${domain.age} ago` : ""}`),
+            row("Expires", domain.expires),
+            row("Last updated", domain.updated),
+            row("Registrar", domain.registrar),
+            row("Owner", owner),
+            row("Name servers", domain.nameservers),
+          ].join(""), domain.error)}
+          ${card("Hosting / server", [
+            row("IP", hosting.ip),
+            row("Company", hosting.organization),
+            row("Network", hosting.network_name),
+            row("Country", hosting.country),
+            row("IP range", hosting.network),
+            row("Reverse DNS", hosting.reverse_dns),
+          ].join(""), hosting.error)}
+          ${card("SSL certificate", [
+            row("Issuer", tls.issuer),
+            row("Valid from", tls.valid_from),
+            row("Valid until", sslLeft),
+            row("Protocol", tls.protocol),
+            row("Covers", tls.sample_domains),
+          ].join(""), tls.error)}
+          ${card("Email & services", [
+            row("Email provider", email.provider),
+            row("Mail servers", email.mx),
+            row("Sends email via", email.sending_services),
+            row("Verified with", email.verified_services),
+            row("DMARC", email.dmarc ? (/p=reject/i.test(email.dmarc) ? "Enforced (reject)" : /p=quarantine/i.test(email.dmarc) ? "Quarantine" : "Monitoring only") : "Not set"),
+          ].join(""), email.error)}
+        </div>
+      </section>`;
+  }
+
   function render(d) {
     const facts = [
       `HTTP ${d.status}`,
@@ -108,7 +172,7 @@
 
     const notes = d.notes.length ? `<ul class="notes">${d.notes.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : "";
 
-    const cats = d.categories.map((c) => `
+    const cat = (c) => `
       <section class="cat">
         <h2>${esc(c.name)}</h2>
         ${c.technologies.map((t) => `
@@ -121,6 +185,14 @@
             </summary>
             <ul>${t.evidence.map((e) => `<li>${esc(e)}</li>`).join("")}</ul>
           </details>`).join("")}
+      </section>`;
+
+    const info = renderInfo(d.info || {});
+
+    const groups = d.groups.map((g) => `
+      <section class="group">
+        <h2 class="group-title">${esc(g.name)} <span>${g.count}</span></h2>
+        <div class="grid">${g.categories.map(cat).join("")}</div>
       </section>`).join("");
 
     $("out").innerHTML = `
@@ -130,7 +202,8 @@
         <div class="facts">${facts.map((f) => `<span>${esc(f)}</span>`).join("")}</div>
         ${notes}
       </div>
-      ${d.count ? `<div class="grid">${cats}</div>` : `<p class="status">No technologies recognised.</p>`}
+      ${info}
+      ${d.count ? groups : `<p class="status">No technologies recognised.</p>`}
       <p class="legend">Click a technology to see the evidence. High = 2+ signals, Medium = 1 signal, Implied = inferred from another technology.</p>`;
   }
 </script>

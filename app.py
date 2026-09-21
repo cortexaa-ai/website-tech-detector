@@ -18,6 +18,8 @@ from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qs, unquote, urljoin, urlparse
 
+import siteinfo
+
 HOST, PORT = "127.0.0.1", 8000
 BASE = Path(__file__).resolve().parent
 TIMEOUT = 10            # seconds per request
@@ -28,13 +30,21 @@ MAX_REDIRECTS = 5
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
 
-CATEGORY_ORDER = [
-    "CMS", "Ecommerce", "Page builder", "Web framework", "Static site generator",
-    "JavaScript framework", "JavaScript library", "UI framework", "Programming language",
-    "Database", "Web server", "Operating system", "Cache", "CDN", "Hosting",
-    "Analytics", "Tag manager", "Marketing", "Payments", "Live chat", "Security",
-    "Cookie consent", "Monitoring", "Build tool", "Fonts", "Maps", "Video", "Misc",
+# Result sections, in display order. Each category belongs to exactly one group;
+# a signature can override its group with "group" (e.g. Next.js is a web framework but lives in Frontend).
+GROUPS = [
+    ("Frontend", ["JavaScript framework", "JavaScript library", "UI framework", "CSS-in-JS",
+                  "Fonts", "Build tool", "Performance"]),
+    ("Backend", ["Web framework", "Programming language", "Database", "Web server", "Operating system"]),
+    ("CMS & site builders", ["CMS", "Page builder", "Ecommerce", "Static site generator"]),
+    ("Hosting & infrastructure", ["Hosting", "CDN", "Cache"]),
+    ("Marketing & analytics", ["Analytics", "Advertising", "Tag manager", "Marketing automation",
+                               "Live chat", "Email marketing"]),
+    ("Security & privacy", ["Security", "Cookie consent"]),
+    ("Other", ["Payments", "Monitoring", "Maps", "Video", "Misc"]),
 ]
+CATEGORY_GROUP = {c: g for g, cats in GROUPS for c in cats}
+CATEGORY_ORDER = [c for _, cats in GROUPS for c in cats]
 
 
 class DetectError(Exception):
@@ -45,14 +55,33 @@ class DetectError(Exception):
 
 # ---------------------------------------------------------------- signatures
 
+class Pattern:
+    """A regex, optionally suffixed with \\;version:<template> (Wappalyzer style), e.g.
+    "gtag/js\\?id=G-\\;version:GA4" or "jquery-([\\d.]+)\\.js\\;version:\\1"."""
+
+    def __init__(self, source):
+        regex, _, self.template = source.partition(r"\;version:")
+        self.rx = re.compile(regex, re.I)
+
+    def search(self, text):
+        return self.rx.search(text)
+
+    def version(self, m):
+        if self.template:
+            v = re.sub(r"\\(\d)", lambda g: m.group(int(g.group(1))) or "", self.template)
+        else:
+            v = next((g for g in m.groups() if g), None)
+        return (v or "").strip().rstrip(".") or None
+
+
 def _load_signatures():
     raw = json.loads((BASE / "signatures.json").read_text(encoding="utf-8"))
     sigs = {}
     for name, s in raw.items():
         def rx(p, name=name):
             try:
-                return re.compile(p, re.I)
-            except re.error as e:
+                return Pattern(p)
+            except (re.error, IndexError) as e:
                 raise SystemExit(f"signatures.json: bad regex in {name!r}: {p!r} ({e})")
 
         def as_list(v):
@@ -60,6 +89,7 @@ def _load_signatures():
 
         sigs[name] = {
             "cat": s.get("cat", "Misc"),
+            "group": s.get("group") or CATEGORY_GROUP.get(s.get("cat"), "Other"),
             **{k: [rx(p) for p in as_list(s.get(k))] for k in ("html", "scripts", "css", "url", "dns", "js")},
             "headers": {k.lower(): rx(v) for k, v in s.get("headers", {}).items()},
             "meta": {k.lower(): rx(v) for k, v in s.get("meta", {}).items()},
@@ -67,6 +97,8 @@ def _load_signatures():
             "implies": as_list(s.get("implies")),
         }
     for name, s in sigs.items():
+        if s["cat"] not in CATEGORY_GROUP:
+            raise SystemExit(f"signatures.json: {name!r} has unknown category {s['cat']!r}")
         for imp in s["implies"]:
             if imp not in sigs:
                 raise SystemExit(f"signatures.json: {name!r} implies unknown technology {imp!r}")
@@ -254,9 +286,10 @@ def _short(s, n=90):
     return s if len(s) <= n else s[: n - 1] + "…"
 
 
-def _version(m):
-    v = next((g for g in m.groups() if g), None)
-    return v.strip().rstrip(".") if v else None
+def _tech(name, version, confidence, evidence):
+    sig = SIGS[name]
+    return {"name": name, "category": sig["cat"], "group": sig["group"], "version": version,
+            "confidence": confidence, "evidence": evidence}
 
 
 def analyze(ctx):
@@ -264,55 +297,74 @@ def analyze(ctx):
     for name, sig in SIGS.items():
         evidence, version = [], None
 
-        def hit(label, m):
+        def hit(label, p, m):
             nonlocal version
             evidence.append(label)
-            version = version or _version(m)
+            version = version or p.version(m)
 
-        for rx in sig["html"]:
-            if m := rx.search(ctx["html"]):
-                hit(f'HTML contains "{_short(m.group(0), 60)}"', m)
+        for p in sig["html"]:
+            if m := p.search(ctx["html"]):
+                hit(f'HTML contains "{_short(m.group(0), 60)}"', p, m)
+                continue
+            # Tools injected at runtime by a tag manager / loader script (GTM, HubSpot, Clarity).
+            for src, body in ctx["loaders"]:
+                if (m := p.search(body)) and m.group(0).lower() not in LOADER_NOISE:
+                    hit(f'Loaded by {_short(src, 60)} ("{_short(m.group(0), 50)}")', p, m)
+                    break
         for key, label in (("scripts", "Script"), ("css", "Stylesheet"), ("url", "URL"), ("dns", "DNS name")):
-            for rx in sig[key]:
+            for p in sig[key]:
                 for value in ctx[key]:
-                    if m := rx.search(value):
-                        hit(f"{label}: {_short(value)}", m)
+                    if m := p.search(value):
+                        hit(f"{label}: {_short(value)}", p, m)
                         break
-        for rx in sig["js"]:
+        for p in sig["js"]:
             for src, body in ctx["js"]:
-                if m := rx.search(body):
-                    hit(f'JS bundle {_short(src.rsplit("/", 1)[-1], 50)} contains "{_short(m.group(0), 50)}"', m)
+                if m := p.search(body):
+                    hit(f'JS bundle {_short(src.rsplit("/", 1)[-1], 50)} contains "{_short(m.group(0), 50)}"', p, m)
                     break
-        for key, rx in sig["headers"].items():
+        for key, p in sig["headers"].items():
             for value in ctx["headers"].get(key, []):
-                if m := rx.search(value):
-                    hit(f"Header {key}: {_short(value, 70)}", m)
+                if m := p.search(value):
+                    hit(f"Header {key}: {_short(value, 70)}", p, m)
                     break
-        for key, rx in sig["meta"].items():
+        for key, p in sig["meta"].items():
             for value in ctx["meta"].get(key, []):
-                if m := rx.search(value):
-                    hit(f'<meta {key}="{_short(value, 60)}">', m)
+                if m := p.search(value):
+                    hit(f'<meta {key}="{_short(value, 60)}">', p, m)
                     break
-        for name_rx, value_rx in sig["cookies"]:
+        for name_p, value_p in sig["cookies"]:
             for cname, cvalue in ctx["cookies"]:
-                if name_rx.fullmatch(cname) and (m := value_rx.search(cvalue)):
-                    hit(f"Cookie {cname}", m)
+                if name_p.rx.fullmatch(cname) and (m := value_p.search(cvalue)):
+                    hit(f"Cookie {cname}", value_p, m)
                     break
 
         if evidence:
-            found[name] = {"name": name, "category": sig["cat"], "version": version,
-                           "confidence": "high" if len(evidence) > 1 else "medium",
-                           "evidence": evidence}
+            found[name] = _tech(name, version, "high" if len(evidence) > 1 else "medium", evidence)
 
     queue = list(found)
     while queue:
         src = queue.pop()
         for imp in SIGS[src]["implies"]:
             if imp not in found:
-                found[imp] = {"name": imp, "category": SIGS[imp]["cat"], "version": None,
-                              "confidence": "implied", "evidence": [f"Implied by {src}"]}
+                found[imp] = _tech(imp, None, "implied", [f"Implied by {src}"])
                 queue.append(imp)
     return found
+
+
+LOADER_HOSTS = ("googletagmanager.com", "hs-scripts.com", "clarity.ms")
+# Strings baked into every GTM container's runtime, so they prove nothing when found inside one.
+LOADER_NOISE = {"fls.doubleclick.net", "googleads.g.doubleclick.net", "googleadservices.com/pagead/conversion"}
+MAX_LOADERS = 4
+
+
+def loader_urls(html, scripts):
+    """Scripts that inject other tools at runtime: fetching them reveals what a real browser would load."""
+    urls = [s for s in scripts if any((urlparse(s).hostname or "").endswith(h) for h in LOADER_HOSTS)]
+    # GTM and Clarity are usually injected by an inline snippet, so rebuild their URLs from the IDs.
+    urls += [f"https://www.googletagmanager.com/gtm.js?id={i}" for i in re.findall(r"\bGTM-[A-Z0-9]{4,10}\b", html)]
+    urls += [f"https://www.clarity.ms/tag/{i}" for i in
+             re.findall(r"[\"']clarity[\"']\s*,\s*[\"']script[\"']\s*,\s*[\"']([a-z0-9]+)[\"']", html)]
+    return list(dict.fromkeys(urls))[:MAX_LOADERS]
 
 
 # ---------------------------------------------------------------- pipeline
@@ -347,14 +399,20 @@ def detect(target):
     # Bundled SPAs (React/Vue/Angular) often leave no trace in HTML, so peek into their JS.
     # Same-site scripts first, then others (big sites serve bundles from their own CDN domain, e.g. fbcdn.net).
     site = ".".join(host.split(".")[-2:])
+    loaders = loader_urls(page["html"], scripts)
     inline = [s for s in scripts if s.startswith("data:")]
-    remote = [s for s in scripts if not s.startswith("data:")]
+    remote = [s for s in scripts if not s.startswith("data:") and s not in loaders]
     same = [s for s in remote if (urlparse(s).hostname or "").endswith(site)]
     own = inline + (same + [s for s in remote if s not in same])[:MAX_SCRIPTS]
-    with ThreadPoolExecutor(max_workers=MAX_SCRIPTS + 1) as pool:
+    with ThreadPoolExecutor(max_workers=MAX_SCRIPTS + MAX_LOADERS + 1) as pool:
         dns_future = pool.submit(dns_names, host)
+        server_ip = _resolve(host)
+        info_future = pool.submit(siteinfo.gather, host, server_ip)
+        loader_futures = [pool.submit(fetch_script, u, page["verify"]) for u in loaders]
         js = [r for r in pool.map(lambda u: fetch_script(u, page["verify"]), own) if r]
+        loaded = [r for r in (f.result() for f in loader_futures) if r]
         dns = dns_future.result()
+        info = info_future.result()
 
     headers = {}
     for k, v in page["headers"].items():
@@ -366,7 +424,7 @@ def detect(target):
 
     found = analyze({
         "html": page["html"], "scripts": scripts, "css": links, "url": [final], "dns": dns,
-        "js": js, "headers": headers, "meta": parser.meta, "cookies": cookies,
+        "js": js + loaded, "loaders": loaded, "headers": headers, "meta": parser.meta, "cookies": cookies,
     })
 
     status = page["status"]
@@ -377,25 +435,30 @@ def detect(target):
     if not page["html"].strip():
         notes.append("Page body was empty.")
 
-    order = {c: i for i, c in enumerate(CATEGORY_ORDER)}
     rank = {"high": 0, "medium": 1, "implied": 2}
-    grouped = {}
+    by_cat = {}  # (group, category) -> technologies
     for t in sorted(found.values(), key=lambda t: (rank[t["confidence"]], t["name"].lower())):
-        grouped.setdefault(t["category"], []).append(t)
+        by_cat.setdefault((t["group"], t["category"]), []).append(t)
+    groups = []
+    for group, _ in GROUPS:
+        cats = sorted((c for g, c in by_cat if g == group), key=CATEGORY_ORDER.index)
+        if cats:
+            groups.append({"name": group, "count": sum(len(by_cat[(group, c)]) for c in cats),
+                           "categories": [{"name": c, "technologies": by_cat[(group, c)]} for c in cats]})
 
     return {
         "input": target,
         "final_url": final,
         "status": status,
         "title": _short(parser.title, 150),
-        "server_ip": _resolve(host),
+        "server_ip": server_ip,
+        "info": info,
         "dns": dns,
-        "scripts_inspected": len(js),
+        "scripts_inspected": len(js) + len(loaded),
         "count": len(found),
         "elapsed_ms": int((time.monotonic() - t0) * 1000),
         "notes": notes,
-        "categories": [{"name": c, "technologies": grouped[c]}
-                       for c in sorted(grouped, key=lambda c: order.get(c, len(order)))],
+        "groups": groups,
     }
 
 
@@ -429,6 +492,8 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    import sys
+    PORT = int(sys.argv[1]) if len(sys.argv) > 1 else PORT  # python app.py 8001
     server = ThreadingHTTPServer((HOST, PORT), Handler)
     print(f"Loaded {len(SIGS)} technology signatures.")
     print(f"Open http://localhost:{PORT}  (Ctrl+C to stop)")

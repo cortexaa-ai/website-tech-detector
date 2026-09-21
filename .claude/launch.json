@@ -4,8 +4,8 @@
     {
       "name": "website-detector",
       "runtimeExecutable": "C:\\Users\\Eng.Omar\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
-      "runtimeArgs": ["app.py"],
-      "port": 8000
+      "runtimeArgs": ["app.py", "8001"],
+      "port": 8001
     }
   ]
 }
