@@ -31,7 +31,7 @@ SPF_SERVICES = {
     "spf.mtasv.net": "Postmark", "sparkpostmail.com": "SparkPost", "mailjet.com": "Mailjet",
     "zoho.com": "Zoho", "zoho.eu": "Zoho", "mktomail.com": "Marketo", "intercom.io": "Intercom",
     "stspg-customer.com": "Atlassian Statuspage", "shopify.com": "Shopify", "brevo.com": "Brevo",
-    "sendinblue.com": "Brevo", "klaviyo.com": "Klaviyo", "customer.io": "Customer.io",
+    "sendinblue.com": "Brevo", "mail.hostinger.com": "Hostinger Email", "klaviyo.com": "Klaviyo", "customer.io": "Customer.io",
 }
 
 TXT_VERIFICATIONS = {

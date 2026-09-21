@@ -100,6 +100,7 @@
       const res = await fetch(`/api/detect?url=${encodeURIComponent(url)}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      if (!data.groups) throw new Error("The server is running an older version of app.py. Stop it (Ctrl+C) and run python app.py again.");
       render(data);
     } catch (err) {
       $("out").innerHTML = `<p class="status error">${esc(err.message)}</p>`;
