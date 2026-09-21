@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Website Detector</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --text: #1b1f24; --muted: #5f6b7a; --border: #e2e6eb;
+    --accent: #2f6fed; --accent-text: #ffffff; --chip: #eef2f7;
+    --high: #1f8a4c; --medium: #b7791f; --implied: #7a8594; --error-bg: #fdecec; --error: #b42318;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1216; --panel: #171b21; --text: #e6e9ee; --muted: #98a2b1; --border: #2a3039;
+      --accent: #5b8ef5; --accent-text: #0f1216; --chip: #222831;
+      --high: #4cc38a; --medium: #e0a54a; --implied: #8b95a3; --error-bg: #3a1a1a; --error: #ff8a80;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 960px; margin: 0 auto; padding: 40px 16px 64px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  form { display: flex; gap: 8px; }
+  input { flex: 1; min-width: 0; padding: 12px 14px; font: inherit; color: var(--text);
+          background: var(--panel); border: 1px solid var(--border); border-radius: 10px; }
+  input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  button { padding: 0 20px; font: inherit; font-weight: 600; border: 0; border-radius: 10px;
+           background: var(--accent); color: var(--accent-text); cursor: pointer; }
+  button:disabled { opacity: .6; cursor: wait; }
+  .status { margin: 20px 0; color: var(--muted); }
+  .error { background: var(--error-bg); color: var(--error); padding: 12px 14px; border-radius: 10px; }
+  .spinner { display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px;
+             border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%;
+             animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .summary { background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+             padding: 16px 18px; margin: 24px 0; }
+  .summary .title { font-weight: 600; font-size: 17px; overflow-wrap: anywhere; }
+  .summary .url { color: var(--muted); overflow-wrap: anywhere; }
+  .facts { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; color: var(--muted); font-size: 13px; }
+  .notes { margin: 10px 0 0; padding-left: 18px; color: var(--medium); font-size: 13px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+  .cat { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  .cat h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; }
+  details { border-top: 1px solid var(--border); padding: 8px 0; }
+  details:first-of-type { border-top: 0; }
+  summary { display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  .logo { flex: none; width: 28px; height: 28px; border-radius: 7px; background: var(--chip);
+          display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+  .name { font-weight: 600; }
+  .ver { font-size: 12px; padding: 1px 7px; border-radius: 99px; background: var(--chip); color: var(--muted); }
+  .conf { margin-left: auto; font-size: 12px; font-weight: 600; }
+  .conf.high { color: var(--high); } .conf.medium { color: var(--medium); } .conf.implied { color: var(--implied); }
+  details ul { margin: 6px 0 2px 36px; padding: 0; list-style: none; font-size: 12.5px; color: var(--muted); }
+  details li { overflow-wrap: anywhere; font-family: ui-monospace, Consolas, monospace; }
+  .legend { color: var(--muted); font-size: 12.5px; margin-top: 18px; }
+  @media (max-width: 520px) { form { flex-direction: column; } button { padding: 12px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Website Detector</h1>
+  <p class="sub">Enter any website and see what it's built with: CMS, frameworks, languages, servers, CDN, analytics.</p>
+
+  <form id="form">
+    <input id="url" type="text" placeholder="example.com or https://example.com" autocomplete="off" autofocus required>
+    <button id="go" type="submit">Detect</button>
+  </form>
+
+  <div id="out"></div>
+</main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const CONF = { high: "High", medium: "Medium", implied: "Implied" };
+
+  $("form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const url = $("url").value.trim();
+    if (!url) return;
+    $("go").disabled = true;
+    $("out").innerHTML = `<p class="status"><span class="spinner"></span>Scanning ${esc(url)}…</p>`;
+    try {
+      const res = await fetch(`/api/detect?url=${encodeURIComponent(url)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      render(data);
+    } catch (err) {
+      $("out").innerHTML = `<p class="status error">${esc(err.message)}</p>`;
+    } finally {
+      $("go").disabled = false;
+    }
+  });
+
+  function render(d) {
+    const facts = [
+      `HTTP ${d.status}`,
+      d.server_ip && `IP ${d.server_ip}`,
+      `${d.count} technologies`,
+      `${d.scripts_inspected} JS bundles inspected`,
+      `${(d.elapsed_ms / 1000).toFixed(1)}s`,
+    ].filter(Boolean);
+
+    const notes = d.notes.length ? `<ul class="notes">${d.notes.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : "";
+
+    const cats = d.categories.map((c) => `
+      <section class="cat">
+        <h2>${esc(c.name)}</h2>
+        ${c.technologies.map((t) => `
+          <details>
+            <summary>
+              <span class="logo">${esc(t.name[0])}</span>
+              <span class="name">${esc(t.name)}</span>
+              ${t.version ? `<span class="ver">${esc(t.version)}</span>` : ""}
+              <span class="conf ${t.confidence}">${CONF[t.confidence]}</span>
+            </summary>
+            <ul>${t.evidence.map((e) => `<li>${esc(e)}</li>`).join("")}</ul>
+          </details>`).join("")}
+      </section>`).join("");
+
+    $("out").innerHTML = `
+      <div class="summary">
+        <div class="title">${esc(d.title || "(no title)")}</div>
+        <div class="url">${esc(d.final_url)}</div>
+        <div class="facts">${facts.map((f) => `<span>${esc(f)}</span>`).join("")}</div>
+        ${notes}
+      </div>
+      ${d.count ? `<div class="grid">${cats}</div>` : `<p class="status">No technologies recognised.</p>`}
+      <p class="legend">Click a technology to see the evidence. High = 2+ signals, Medium = 1 signal, Implied = inferred from another technology.</p>`;
+  }
+</script>
+</body>
+</html>

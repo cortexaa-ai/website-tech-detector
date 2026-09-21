@@ -1,0 +1,641 @@
+{
+  "WordPress": {
+    "cat": "CMS",
+    "meta": { "generator": "^WordPress ?([\\d.]+)?" },
+    "html": ["/wp-content/", "/wp-includes/"],
+    "headers": { "link": "api\\.w\\.org", "x-pingback": "xmlrpc\\.php" },
+    "scripts": ["/wp-includes/js/"],
+    "implies": ["PHP", "MySQL"]
+  },
+  "WooCommerce": {
+    "cat": "Ecommerce",
+    "meta": { "generator": "^WooCommerce ?([\\d.]+)?" },
+    "html": ["woocommerce-(?:page|js|no-js)", "/plugins/woocommerce/"],
+    "implies": ["WordPress"]
+  },
+  "Elementor": {
+    "cat": "Page builder",
+    "meta": { "generator": "^Elementor ?([\\d.]+)?" },
+    "html": ["/plugins/elementor/", "elementor-kit-\\d+"],
+    "implies": ["WordPress"]
+  },
+  "Drupal": {
+    "cat": "CMS",
+    "meta": { "generator": "^Drupal ?([\\d.]+)?" },
+    "headers": { "x-generator": "Drupal ?([\\d.]+)?", "x-drupal-cache": "", "x-drupal-dynamic-cache": "" },
+    "html": ["Drupal\\.settings", "/sites/default/files/", "data-drupal-selector"],
+    "implies": ["PHP"]
+  },
+  "Joomla": {
+    "cat": "CMS",
+    "meta": { "generator": "^Joomla!? ?([\\d.]+)?" },
+    "html": ["/media/jui/", "/media/system/js/core\\.js", "/components/com_"],
+    "implies": ["PHP"]
+  },
+  "TYPO3": {
+    "cat": "CMS",
+    "meta": { "generator": "^TYPO3 ?([\\d.]+)?" },
+    "html": ["/typo3conf/", "/typo3temp/"],
+    "implies": ["PHP"]
+  },
+  "Ghost": {
+    "cat": "CMS",
+    "meta": { "generator": "^Ghost ?([\\d.]+)?" },
+    "implies": ["Node.js"]
+  },
+  "Blogger": {
+    "cat": "CMS",
+    "meta": { "generator": "^Blogger" },
+    "html": ["\\.blogger\\.com/", "blogblog\\.com"]
+  },
+  "Wix": {
+    "cat": "CMS",
+    "meta": { "generator": "Wix\\.com" },
+    "headers": { "x-wix-request-id": "" },
+    "html": ["static\\.wixstatic\\.com", "static\\.parastorage\\.com"]
+  },
+  "Squarespace": {
+    "cat": "CMS",
+    "html": ["static1?\\.squarespace\\.com", "Static\\.SQUARESPACE_CONTEXT"],
+    "headers": { "server": "Squarespace" }
+  },
+  "Webflow": {
+    "cat": "CMS",
+    "meta": { "generator": "^Webflow" },
+    "html": ["data-wf-page=", "data-wf-site="]
+  },
+  "HubSpot CMS": {
+    "cat": "CMS",
+    "meta": { "generator": "^HubSpot" },
+    "headers": { "x-hs-hub-id": "" }
+  },
+  "Shopify": {
+    "cat": "Ecommerce",
+    "html": ["cdn\\.shopify\\.com", "Shopify\\.theme", "shopify-section"],
+    "headers": { "x-shopid": "", "x-shopify-stage": "" },
+    "cookies": { "_shopify_.*": "" }
+  },
+  "Magento": {
+    "cat": "Ecommerce",
+    "html": ["Mage\\.Cookies", "/static/version\\d+/frontend/", "data-mage-init"],
+    "cookies": { "X-Magento-Vary": "" },
+    "implies": ["PHP"]
+  },
+  "PrestaShop": {
+    "cat": "Ecommerce",
+    "meta": { "generator": "^PrestaShop" },
+    "html": ["var prestashop\\b", "/modules/ps_"],
+    "cookies": { "PrestaShop-[0-9a-f]+": "" },
+    "implies": ["PHP"]
+  },
+  "OpenCart": {
+    "cat": "Ecommerce",
+    "html": ["index\\.php\\?route=(?:common|product)/", "catalog/view/theme/"],
+    "cookies": { "OCSESSID": "" },
+    "implies": ["PHP"]
+  },
+  "BigCommerce": {
+    "cat": "Ecommerce",
+    "html": ["cdn\\d*\\.bigcommerce\\.com"]
+  },
+
+  "Laravel": {
+    "cat": "Web framework",
+    "cookies": { "laravel_session": "" },
+    "html": ["/build/assets/[\\w.-]+-[\\w-]{8}\\.(?:js|css)"],
+    "implies": ["PHP"]
+  },
+  "Livewire": {
+    "cat": "Web framework",
+    "html": ["wire:id=", "wire:snapshot=", "livewire(?:\\.min)?\\.js", "window\\.livewire"],
+    "implies": ["Laravel"]
+  },
+  "Inertia.js": {
+    "cat": "Web framework",
+    "html": ["data-page=\"\\{&quot;component&quot;", "data-page=\"\\{\"component\""]
+  },
+  "Symfony": {
+    "cat": "Web framework",
+    "headers": { "x-debug-token": "", "x-debug-token-link": "" },
+    "html": ["sf-toolbar"],
+    "implies": ["PHP"]
+  },
+  "CodeIgniter": {
+    "cat": "Web framework",
+    "cookies": { "ci_session": "" },
+    "implies": ["PHP"]
+  },
+  "CakePHP": {
+    "cat": "Web framework",
+    "cookies": { "CAKEPHP": "" },
+    "implies": ["PHP"]
+  },
+  "Django": {
+    "cat": "Web framework",
+    "html": ["csrfmiddlewaretoken", "__admin_media_prefix__"],
+    "cookies": { "django_language": "" },
+    "implies": ["Python"]
+  },
+  "Werkzeug (Flask)": {
+    "cat": "Web framework",
+    "headers": { "server": "Werkzeug(?:/([\\d.]+))?" },
+    "implies": ["Python"]
+  },
+  "Ruby on Rails": {
+    "cat": "Web framework",
+    "meta": { "csrf-param": "^authenticity_token$" },
+    "headers": { "x-runtime": "^[\\d.]+$" },
+    "html": ["data-turbo-track=", "/assets/application-[0-9a-f]{32,}\\.(?:js|css)"],
+    "implies": ["Ruby"]
+  },
+  "Express": {
+    "cat": "Web framework",
+    "headers": { "x-powered-by": "^Express" },
+    "implies": ["Node.js"]
+  },
+  "Microsoft ASP.NET": {
+    "cat": "Web framework",
+    "headers": { "x-aspnet-version": "(.+)", "x-aspnetmvc-version": "", "x-powered-by": "ASP\\.NET", "server": "Kestrel" },
+    "cookies": { "ASP\\.NET_SessionId": "", "\\.AspNetCore\\..*": "", "ASPSESSIONID.*": "" },
+    "html": ["__VIEWSTATE", "__EVENTVALIDATION"]
+  },
+  "Spring": {
+    "cat": "Web framework",
+    "headers": { "x-application-context": "" },
+    "implies": ["Java"]
+  },
+  "Next.js": {
+    "cat": "Web framework",
+    "headers": { "x-powered-by": "^Next\\.js ?([\\d.]+)?", "x-nextjs-cache": "", "x-nextjs-matched-path": "" },
+    "html": ["/_next/static/", "__NEXT_DATA__", "self\\.__next_f"],
+    "implies": ["React", "Node.js"]
+  },
+  "Nuxt.js": {
+    "cat": "Web framework",
+    "html": ["window\\.__NUXT__", "/_nuxt/", "id=\"__nuxt\"", "data-nuxt-"],
+    "implies": ["Vue.js", "Node.js"]
+  },
+  "Gatsby": {
+    "cat": "Static site generator",
+    "meta": { "generator": "^Gatsby ?([\\d.]+)?" },
+    "html": ["id=\"___gatsby\""],
+    "implies": ["React"]
+  },
+  "Remix": {
+    "cat": "Web framework",
+    "html": ["__remixContext", "__remixManifest"],
+    "implies": ["React"]
+  },
+  "SvelteKit": {
+    "cat": "Web framework",
+    "html": ["__sveltekit_", "data-sveltekit-"],
+    "implies": ["Svelte"]
+  },
+  "Astro": {
+    "cat": "Web framework",
+    "meta": { "generator": "^Astro v?([\\d.]+)?" },
+    "html": ["<astro-island", "astro-cid-"]
+  },
+  "Hugo": {
+    "cat": "Static site generator",
+    "meta": { "generator": "^Hugo ?([\\d.]+)?" }
+  },
+  "Jekyll": {
+    "cat": "Static site generator",
+    "meta": { "generator": "^Jekyll v?([\\d.]+)?" },
+    "implies": ["Ruby"]
+  },
+  "Docusaurus": {
+    "cat": "Static site generator",
+    "meta": { "generator": "^Docusaurus v?([\\d.]+)?" },
+    "implies": ["React"]
+  },
+
+  "React": {
+    "cat": "JavaScript framework",
+    "html": ["data-reactroot", "data-reactid", "\"ReactDOM[\\w.]*\""],
+    "scripts": ["/react@([\\d.]+)", "\\breact(?:-dom)?(?:\\.production)?(?:\\.min)?\\.js"],
+    "js": ["version:\"([\\d.]+)\",rendererPackageName:\"react-dom\"", "react\\.(?:transitional\\.)?element", "__reactFiber\\$", "__reactContainer\\$"]
+  },
+  "Preact": {
+    "cat": "JavaScript framework",
+    "scripts": ["/preact@([\\d.]+)"],
+    "js": ["__PREACT_DEVTOOLS__"]
+  },
+  "Vue.js": {
+    "cat": "JavaScript framework",
+    "html": ["data-v-[0-9a-f]{8}", "data-server-rendered=\"true\""],
+    "scripts": ["/vue@([\\d.]+)", "\\bvue(?:\\.runtime)?(?:\\.global)?(?:\\.prod)?(?:\\.min)?\\.js"],
+    "js": ["Vue\\.js v([\\d.]+)", "__vue_app__", "__VUE__"]
+  },
+  "Angular": {
+    "cat": "JavaScript framework",
+    "html": ["ng-version=\"([\\d.]+)\"", "_nghost-[\\w-]+", "_ngcontent-[\\w-]+"],
+    "js": ["@angular/core", "ngDevMode"],
+    "implies": ["TypeScript"]
+  },
+  "AngularJS": {
+    "cat": "JavaScript framework",
+    "html": ["\\bng-app\\b", "\\bng-controller="],
+    "scripts": ["angularjs/([\\d.]+)/", "\\bangular(?:\\.min)?\\.js"]
+  },
+  "Svelte": {
+    "cat": "JavaScript framework",
+    "html": ["class=\"[^\"]*\\bsvelte-[a-z0-9]{5,}"],
+    "js": ["svelte/internal", "SvelteComponent"]
+  },
+  "Ember.js": {
+    "cat": "JavaScript framework",
+    "html": ["class=\"[^\"]*\\bember-view\\b"]
+  },
+  "Alpine.js": {
+    "cat": "JavaScript framework",
+    "html": ["\\bx-data=\""],
+    "scripts": ["/alpinejs@([\\d.]+)", "alpine(?:js)?(?:\\.min)?\\.js"]
+  },
+  "htmx": {
+    "cat": "JavaScript library",
+    "html": ["\\bhx-(?:get|post|put|delete|trigger|swap)="],
+    "scripts": ["/htmx\\.org@([\\d.]+)", "htmx(?:\\.min)?\\.js"]
+  },
+  "jQuery": {
+    "cat": "JavaScript library",
+    "scripts": ["jquery(?:-([\\d.]+))?(?:\\.min)?\\.js", "jquery(?:\\.min)?\\.js\\?ver=([\\d.]+)", "/jquery@([\\d.]+)", "/jquery/([\\d.]+)/"],
+    "js": ["jQuery v([\\d.]+)"]
+  },
+  "jQuery UI": {
+    "cat": "JavaScript library",
+    "scripts": ["jquery-ui(?:[.-]([\\d.]+))?(?:\\.min)?\\.js", "/jqueryui/([\\d.]+)/"]
+  },
+  "Lodash": {
+    "cat": "JavaScript library",
+    "scripts": ["lodash(?:\\.min)?\\.js", "/lodash@([\\d.]+)"],
+    "js": ["@license Lodash"]
+  },
+  "Moment.js": {
+    "cat": "JavaScript library",
+    "scripts": ["moment(?:-with-locales)?(?:\\.min)?\\.js"],
+    "js": ["//! moment\\.js"]
+  },
+  "GSAP": {
+    "cat": "JavaScript library",
+    "scripts": ["gsap(?:\\.min)?\\.js", "/gsap@([\\d.]+)", "TweenMax(?:\\.min)?\\.js"],
+    "js": ["GreenSock"]
+  },
+  "Three.js": {
+    "cat": "JavaScript library",
+    "scripts": ["\\bthree(?:\\.module)?(?:\\.min)?\\.js", "/three@([\\d.]+)"]
+  },
+  "Chart.js": {
+    "cat": "JavaScript library",
+    "scripts": ["\\bchart(?:\\.umd)?(?:\\.min)?\\.js", "/chart\\.js@([\\d.]+)"]
+  },
+  "Swiper": {
+    "cat": "JavaScript library",
+    "scripts": ["swiper(?:-bundle)?(?:\\.min)?\\.js", "/swiper@([\\d.]+)"],
+    "css": ["swiper(?:-bundle)?(?:\\.min)?\\.css"]
+  },
+  "Axios": {
+    "cat": "JavaScript library",
+    "scripts": ["/axios@([\\d.]+)", "axios(?:\\.min)?\\.js"]
+  },
+
+  "Bootstrap": {
+    "cat": "UI framework",
+    "scripts": ["bootstrap(?:\\.bundle)?(?:\\.min)?\\.js", "/bootstrap@([\\d.]+)", "/bootstrap/([\\d.]+)/"],
+    "css": ["bootstrap(?:\\.min)?\\.css", "/bootstrap@([\\d.]+)", "/bootstrap/([\\d.]+)/"],
+    "html": ["Bootstrap v([\\d.]+) \\("]
+  },
+  "Tailwind CSS": {
+    "cat": "UI framework",
+    "html": ["tailwindcss v([\\d.]+)", "\\b(?:bg|text|border)-(?:gray|slate|zinc|neutral|stone)-(?:50|[1-9]00|950)\\b"],
+    "scripts": ["cdn\\.tailwindcss\\.com"]
+  },
+  "Bulma": {
+    "cat": "UI framework",
+    "css": ["bulma(?:\\.min)?\\.css", "/bulma@([\\d.]+)"]
+  },
+  "Foundation": {
+    "cat": "UI framework",
+    "css": ["foundation(?:\\.min)?\\.css"],
+    "scripts": ["foundation(?:\\.min)?\\.js"]
+  },
+  "Font Awesome": {
+    "cat": "Fonts",
+    "css": ["font-?awesome", "/fontawesome"],
+    "scripts": ["kit\\.fontawesome\\.com"]
+  },
+  "Google Fonts": {
+    "cat": "Fonts",
+    "css": ["fonts\\.googleapis\\.com"],
+    "html": ["fonts\\.googleapis\\.com/css"]
+  },
+
+  "PHP": {
+    "cat": "Programming language",
+    "headers": { "x-powered-by": "PHP(?:/([\\d.]+))?" },
+    "cookies": { "PHPSESSID": "" },
+    "url": ["\\.php(?:\\?|$)"]
+  },
+  "Python": { "cat": "Programming language" },
+  "Ruby": {
+    "cat": "Programming language",
+    "headers": { "server": "Phusion Passenger|Puma" }
+  },
+  "Java": {
+    "cat": "Programming language",
+    "cookies": { "JSESSIONID": "" },
+    "url": ["\\.(?:jsp|do)(?:\\?|$)"]
+  },
+  "Node.js": { "cat": "Programming language" },
+  "TypeScript": { "cat": "Programming language" },
+  "MySQL": { "cat": "Database" },
+  "Windows Server": { "cat": "Operating system" },
+
+  "Nginx": {
+    "cat": "Web server",
+    "headers": { "server": "nginx(?:/([\\d.]+))?" }
+  },
+  "OpenResty": {
+    "cat": "Web server",
+    "headers": { "server": "openresty(?:/([\\d.]+))?" },
+    "implies": ["Nginx"]
+  },
+  "Apache HTTP Server": {
+    "cat": "Web server",
+    "headers": { "server": "^Apache(?:/([\\d.]+))?(?![-\\w])" }
+  },
+  "Apache Tomcat": {
+    "cat": "Web server",
+    "headers": { "server": "Apache-Coyote|Tomcat" },
+    "implies": ["Java"]
+  },
+  "Microsoft IIS": {
+    "cat": "Web server",
+    "headers": { "server": "Microsoft-IIS(?:/([\\d.]+))?" },
+    "implies": ["Windows Server"]
+  },
+  "LiteSpeed": {
+    "cat": "Web server",
+    "headers": { "server": "LiteSpeed", "x-litespeed-cache": "" }
+  },
+  "Caddy": {
+    "cat": "Web server",
+    "headers": { "server": "^Caddy" }
+  },
+  "Gunicorn": {
+    "cat": "Web server",
+    "headers": { "server": "gunicorn(?:/([\\d.]+))?" },
+    "implies": ["Python"]
+  },
+  "Uvicorn": {
+    "cat": "Web server",
+    "headers": { "server": "uvicorn" },
+    "implies": ["Python"]
+  },
+  "Envoy": {
+    "cat": "Web server",
+    "headers": { "server": "envoy", "x-envoy-upstream-service-time": "" }
+  },
+  "Varnish": {
+    "cat": "Cache",
+    "headers": { "x-varnish": "", "via": "varnish" }
+  },
+
+  "Cloudflare": {
+    "cat": "CDN",
+    "headers": { "cf-ray": "", "server": "^cloudflare", "cf-cache-status": "" },
+    "cookies": { "__cf_bm": "", "__cfruid": "", "cf_clearance": "" },
+    "dns": ["cloudflare"]
+  },
+  "Fastly": {
+    "cat": "CDN",
+    "headers": { "x-fastly-request-id": "", "x-served-by": "^cache-" },
+    "dns": ["fastly"]
+  },
+  "Akamai": {
+    "cat": "CDN",
+    "headers": { "x-akamai-transformed": "", "akamai-grn": "", "server": "AkamaiGHost" },
+    "dns": ["akamai", "edgekey\\.net", "edgesuite\\.net"]
+  },
+  "Amazon CloudFront": {
+    "cat": "CDN",
+    "headers": { "x-amz-cf-id": "", "via": "CloudFront" },
+    "dns": ["cloudfront\\.net"],
+    "implies": ["Amazon Web Services"]
+  },
+  "Azure Front Door": {
+    "cat": "CDN",
+    "headers": { "x-azure-ref": "", "x-fd-healthprobe": "" },
+    "dns": ["azurefd\\.net", "azureedge\\.net"],
+    "implies": ["Microsoft Azure"]
+  },
+  "jsDelivr": {
+    "cat": "CDN",
+    "scripts": ["cdn\\.jsdelivr\\.net"],
+    "css": ["cdn\\.jsdelivr\\.net"]
+  },
+  "cdnjs": {
+    "cat": "CDN",
+    "scripts": ["cdnjs\\.cloudflare\\.com"],
+    "css": ["cdnjs\\.cloudflare\\.com"]
+  },
+  "unpkg": {
+    "cat": "CDN",
+    "scripts": ["unpkg\\.com"],
+    "css": ["unpkg\\.com"]
+  },
+  "Amazon Web Services": {
+    "cat": "Hosting",
+    "headers": { "server": "^AmazonS3|awselb", "x-amz-request-id": "" },
+    "cookies": { "AWSALB.*": "", "AWSELB": "" },
+    "dns": ["amazonaws\\.com", "awsglobalaccelerator"]
+  },
+  "Vercel": {
+    "cat": "Hosting",
+    "headers": { "x-vercel-id": "", "x-vercel-cache": "", "server": "^Vercel" },
+    "dns": ["vercel"]
+  },
+  "Netlify": {
+    "cat": "Hosting",
+    "headers": { "x-nf-request-id": "", "server": "^Netlify" },
+    "dns": ["netlify"]
+  },
+  "GitHub Pages": {
+    "cat": "Hosting",
+    "headers": { "server": "^GitHub\\.com", "x-github-request-id": "" },
+    "dns": ["github\\.io"]
+  },
+  "Heroku": {
+    "cat": "Hosting",
+    "headers": { "via": "vegur" },
+    "dns": ["herokuapp\\.com", "herokudns\\.com"]
+  },
+  "Google Cloud": {
+    "cat": "Hosting",
+    "headers": { "server": "^Google Frontend", "x-cloud-trace-context": "" },
+    "dns": ["googlehosted\\.com", "ghs\\.google"]
+  },
+  "Firebase Hosting": {
+    "cat": "Hosting",
+    "dns": ["firebaseapp\\.com", "\\.web\\.app$"],
+    "implies": ["Google Cloud"]
+  },
+  "Microsoft Azure": {
+    "cat": "Hosting",
+    "headers": { "x-ms-request-id": "" },
+    "cookies": { "ARRAffinity": "" },
+    "dns": ["azurewebsites\\.net", "cloudapp\\.azure\\.com", "trafficmanager\\.net"]
+  },
+  "Render": {
+    "cat": "Hosting",
+    "headers": { "rndr-id": "" },
+    "dns": ["onrender\\.com"]
+  },
+
+  "Google Analytics": {
+    "cat": "Analytics",
+    "html": ["google-analytics\\.com/(?:ga|analytics)\\.js", "googletagmanager\\.com/gtag/js\\?id=G-", "\\bgtag\\(\\s*['\"]config['\"]\\s*,\\s*['\"](?:G|UA)-"]
+  },
+  "Google Tag Manager": {
+    "cat": "Tag manager",
+    "html": ["googletagmanager\\.com/gtm\\.js", "googletagmanager\\.com/ns\\.html\\?id=GTM-"]
+  },
+  "Meta Pixel": {
+    "cat": "Analytics",
+    "html": ["connect\\.facebook\\.net/[^\"']+/fbevents\\.js", "\\bfbq\\(\\s*['\"]init"]
+  },
+  "Hotjar": {
+    "cat": "Analytics",
+    "html": ["static\\.hotjar\\.com", "\\bhjid\\s*:"]
+  },
+  "Microsoft Clarity": {
+    "cat": "Analytics",
+    "html": ["clarity\\.ms/tag"]
+  },
+  "Plausible": {
+    "cat": "Analytics",
+    "scripts": ["plausible\\.io/js"]
+  },
+  "Matomo": {
+    "cat": "Analytics",
+    "html": ["matomo\\.js", "piwik\\.js", "_paq\\.push"]
+  },
+  "Mixpanel": {
+    "cat": "Analytics",
+    "html": ["cdn\\.mxpnl\\.com", "mixpanel\\.init"]
+  },
+  "Segment": {
+    "cat": "Analytics",
+    "html": ["cdn\\.segment\\.com/analytics"]
+  },
+  "HubSpot": {
+    "cat": "Marketing",
+    "html": ["js\\.hs-scripts\\.com", "js\\.hsforms\\.net", "js\\.hs-analytics\\.net"]
+  },
+  "Mailchimp": {
+    "cat": "Marketing",
+    "html": ["chimpstatic\\.com", "list-manage\\.com"]
+  },
+
+  "Stripe": {
+    "cat": "Payments",
+    "html": ["js\\.stripe\\.com"]
+  },
+  "PayPal": {
+    "cat": "Payments",
+    "html": ["paypal\\.com/sdk/js", "paypalobjects\\.com"]
+  },
+
+  "Intercom": {
+    "cat": "Live chat",
+    "html": ["widget\\.intercom\\.io", "intercomSettings"]
+  },
+  "Crisp": {
+    "cat": "Live chat",
+    "html": ["client\\.crisp\\.chat"]
+  },
+  "Tawk.to": {
+    "cat": "Live chat",
+    "html": ["embed\\.tawk\\.to"]
+  },
+  "Zendesk": {
+    "cat": "Live chat",
+    "html": ["static\\.zdassets\\.com"]
+  },
+
+  "reCAPTCHA": {
+    "cat": "Security",
+    "html": ["google\\.com/recaptcha", "recaptcha/api\\.js", "class=\"g-recaptcha"]
+  },
+  "hCaptcha": {
+    "cat": "Security",
+    "html": ["hcaptcha\\.com/1/api\\.js", "class=\"h-captcha"]
+  },
+  "Cloudflare Turnstile": {
+    "cat": "Security",
+    "html": ["challenges\\.cloudflare\\.com/turnstile"]
+  },
+  "HSTS": {
+    "cat": "Security",
+    "headers": { "strict-transport-security": "" }
+  },
+  "Content Security Policy": {
+    "cat": "Security",
+    "headers": { "content-security-policy": "" }
+  },
+  "OneTrust": {
+    "cat": "Cookie consent",
+    "html": ["cdn\\.cookielaw\\.org", "optanon"]
+  },
+  "Cookiebot": {
+    "cat": "Cookie consent",
+    "html": ["consent\\.cookiebot\\.com"]
+  },
+
+  "Sentry": {
+    "cat": "Monitoring",
+    "html": ["browser\\.sentry-cdn\\.com", "\\.ingest\\.sentry\\.io", "Sentry\\.init"],
+    "js": ["sentry\\.javascript\\.browser"]
+  },
+  "New Relic": {
+    "cat": "Monitoring",
+    "html": ["js-agent\\.newrelic\\.com", "NREUM"]
+  },
+
+  "Vite": {
+    "cat": "Build tool",
+    "html": ["/@vite/client", "<script type=\"module\" crossorigin src=\"/assets/"]
+  },
+  "Webpack": {
+    "cat": "Build tool",
+    "html": ["webpackJsonp", "webpackChunk"],
+    "js": ["webpackJsonp", "webpackChunk", "__webpack_require__"]
+  },
+
+  "Google Maps": {
+    "cat": "Maps",
+    "html": ["maps\\.googleapis\\.com/maps/api", "google\\.com/maps/embed"]
+  },
+  "YouTube": {
+    "cat": "Video",
+    "html": ["youtube(?:-nocookie)?\\.com/embed/"]
+  },
+  "Vimeo": {
+    "cat": "Video",
+    "html": ["player\\.vimeo\\.com"]
+  },
+
+  "Open Graph": {
+    "cat": "Misc",
+    "meta": { "og:title": "", "og:type": "" }
+  },
+  "PWA": {
+    "cat": "Misc",
+    "html": ["<link[^>]+rel=[\"']manifest[\"']"]
+  },
+  "HTTP/3": {
+    "cat": "Misc",
+    "headers": { "alt-svc": "h3" }
+  }
+}

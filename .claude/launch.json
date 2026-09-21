@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "website-detector",
+      "runtimeExecutable": "C:\\Users\\Eng.Omar\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "runtimeArgs": ["app.py"],
+      "port": 8000
+    }
+  ]
+}
